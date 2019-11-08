@@ -1,15 +1,13 @@
-stack:
+version: '3'
 services:
-    cron_boilerplate:
-        image: registry.gitlab.com/riszkymf/cron_boilerplate
+    cron_telegram:
+        image: crontol
+        network_mode: host
         environment:
-            - CRON_MIN=3
-            - CRON_HOUR=3
-            - CRON_DoM=4
-            - CRON_MONTH=1
+            - CRON_MIN=*/1
             - CRONJOBS_FILE=crontab/cron
-            - CRONJOB_COMMAND=curl -G http://www.google.com -o /home/mfriszky/Desktop/crontest.txt
+            - CRONJOB_COMMAND=cd /code && python3 /code/app.py
         volumes:
             - ./log:/code/log
             - ./crontab:/var/spool/cron/crontabs
-        command: ["touch", "/home/mfriszky/Desktop/crontest.txt"]
+    
