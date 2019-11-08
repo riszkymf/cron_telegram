@@ -1,0 +1,15 @@
+stack:
+services:
+    cron_boilerplate:
+        image: registry.gitlab.com/riszkymf/cron_boilerplate
+        environment:
+            - CRON_MIN=3
+            - CRON_HOUR=3
+            - CRON_DoM=4
+            - CRON_MONTH=1
+            - CRONJOBS_FILE=crontab/cron
+            - CRONJOB_COMMAND=curl -G http://www.google.com -o /home/mfriszky/Desktop/crontest.txt
+        volumes:
+            - ./log:/code/log
+            - ./crontab:/var/spool/cron/crontabs
+        command: ["touch", "/home/mfriszky/Desktop/crontest.txt"]
