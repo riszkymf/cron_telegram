@@ -12,7 +12,9 @@ URL_TARGET = os.environ.get("URL_TARGET", os.getenv('URL_TARGET','http://www.goo
 REQ_HEADERS = os.environ.get("REQ_HEADERS", os.getenv('REQ_HEADERS','Access-Token: token'))
 
 def sync(url,headers=dict()):
-    res = requests.get(url,headers=headers)
+    res = requests.get(url, headers=headers, verify=False)
+    print("synchronization result : ")
+    print(res)
     now = datetime.now()
     str_date = now.strftime("%d/%m/%Y %H:%M:%S")
     msg = {
@@ -25,8 +27,7 @@ def sync(url,headers=dict()):
         msg['result'] = data
     except Exception as e:
         msg['error'] = str(e)
-    res = send_to_telegram(CHAT_ID,BOT_ID,msg)
-    return res 
+    return msg 
 
 def send_to_telegram(chat_id,bot_id,msg):
     message = {
@@ -48,5 +49,33 @@ def get_headers():
         val = _header[1]
         header.update({key: val})
     return header
-    
-sync(URL_TARGET,get_headers())
+
+try:
+    send_to_telegram(CHAT_ID,BOT_ID,"executing cronjob")
+except Exception as e:
+    print(str(e))
+try:
+    res = sync(URL_TARGET,get_headers())
+except Exception as ee:
+    print(str(e))
+
+if isinstance(res['result'],str):
+    unsorted = json.loads(res['result'])
+elif isinstance(res['result'],dict):
+    unsorted = res['result']
+
+try:
+    msg = {
+        "ods": unsorted['data']['ods'],
+        "hostbill": {
+            "status": unsorted['data']['hostbill']['status'],
+            "length": len(unsorted['data']['hostbill']['result']),
+            "fail_count": len(unsorted['data']['hostbill']['fails'])
+        },
+        "count": len(unsorted['data']['result'])
+    }
+except Exception as e:
+    msg = {"error" : str(e)}
+res['result']['data'] = msg
+res = send_to_telegram(CHAT_ID,BOT_ID,msg)
+print("telegram response : ",res)
