@@ -4,6 +4,4 @@ services:
         network_mode: bridge
         environment:
             - CRON_MIN=*/1
-            - CRONJOBS_FILE=crontab/cron
             - CRONJOB_COMMAND=cd /code && python3 /code/app.py
-    
