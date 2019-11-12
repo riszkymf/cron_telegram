@@ -15,7 +15,7 @@ REQ_HEADERS = os.environ.get("REQ_HEADERS", os.getenv('REQ_HEADERS','Access-Toke
 def dump_log(data):
     _path = os.path.abspath(os.path.dirname(__file__))
     path = _path + '/log/cron.log'
-    data = "\n" + data
+    data = "\n" + json.dumps(data)
     with open(path,"a+") as f:
         f.write(data)
 
