@@ -1,13 +1,9 @@
-version: '3'
 services:
     cron_telegram:
-        image: crontol
-        network_mode: host
+        image: registry.gitlab.com/riszkymf/cron_telegram:v0.01-working
+        network_mode: bridge
         environment:
             - CRON_MIN=*/1
             - CRONJOBS_FILE=crontab/cron
             - CRONJOB_COMMAND=cd /code && python3 /code/app.py
-        volumes:
-            - ./log:/code/log
-            - ./crontab:/var/spool/cron/crontabs
     

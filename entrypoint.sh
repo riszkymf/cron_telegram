@@ -45,12 +45,11 @@ declare -a ARR=( ${CRON_MIN:-'*'} ${CRON_HOUR:-'*'} ${CRON_DoM:-'*'} ${CRON_MONT
 echo -e "\e[92mCRON SCHEDULE :" ${ARR[*]}
 echo -e "------------------------------------------------------------------------------------------------------\e[0m"
 # PUT YOUR CRONJOB HERE
-touch $CRONJOBS_FILE
 
-cat >> $CRONJOBS_FILE << EOF 
+cat >> /var/spool/cron/crontabs << EOF 
 ${ARR[*]} $CRONJOB_COMMAND
 EOF
-crontab $CRONJOBS_FILE
+
 echo "Listing Crontab"
 echo "------------------------------------------------------------------------------------------------------"
 ls crontab
