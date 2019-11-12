@@ -7,9 +7,19 @@ from datetime import datetime
 
 CHAT_ID = os.environ.get("CHAT_ID", os.getenv('CHAT_ID',''))
 BOT_ID = os.environ.get("BOT_ID", os.getenv('BOT_ID',''))
+REPORT_TELEGRAM = os.environ.get("TELEGRAM_REPORT")
 
 URL_TARGET = os.environ.get("URL_TARGET", os.getenv('URL_TARGET','http://www.google.com'))
 REQ_HEADERS = os.environ.get("REQ_HEADERS", os.getenv('REQ_HEADERS','Access-Token: token'))
+
+def dump_log(data):
+    _path = os.path.abspath(os.path.dirname(__file__))
+    path = _path + '/log/cron.log'
+    data = "\n" + data
+    with open(path,"a+") as f:
+        f.write(data)
+
+
 
 def sync(url,headers=dict()):
     res = requests.get(url, headers=headers, verify=False)
@@ -30,15 +40,18 @@ def sync(url,headers=dict()):
     return msg 
 
 def send_to_telegram(chat_id,bot_id,msg):
-    message = {
-        "chat_id": str(chat_id),
-        "text" : msg
-        
-    }
-    headers = {"Content-Type":"application/json"}
-    url = 'https://api.telegram.org/bot{}/sendMessage'.format(bot_id)
-    res = requests.post(url=url,headers=headers,data=json.dumps(message))
-    return res
+    if REPORT_TELEGRAM == '1':
+        message = {
+            "chat_id": str(chat_id),
+            "text" : msg
+            
+        }
+        headers = {"Content-Type":"application/json"}
+        url = 'https://api.telegram.org/bot{}/sendMessage'.format(bot_id)
+        res = requests.post(url=url,headers=headers,data=json.dumps(message))
+        return res
+    else:
+        return False
 
 def get_headers():
     heads = REQ_HEADERS.split(',')
@@ -55,27 +68,27 @@ try:
 except Exception as e:
     print(str(e))
 try:
-    res = sync(URL_TARGET,get_headers())
+    sync_data = sync(URL_TARGET,get_headers())
 except Exception as ee:
     print(str(e))
-
-if isinstance(res['result'],str):
-    unsorted = json.loads(res['result'])
-elif isinstance(res['result'],dict):
-    unsorted = res['result']
-
-try:
-    msg = {
-        "ods": unsorted['data']['ods'],
-        "hostbill": {
-            "status": unsorted['data']['hostbill']['status'],
-            "length": len(unsorted['data']['hostbill']['result']),
-            "fail_count": len(unsorted['data']['hostbill']['fails'])
-        },
-        "count": len(unsorted['data']['result'])
-    }
-except Exception as e:
-    msg = {"error" : str(e)}
-res['result']['data'] = msg
-res = send_to_telegram(CHAT_ID,BOT_ID,msg)
+res = send_to_telegram(CHAT_ID,BOT_ID,sync_data)
+dump_log(sync_data)
 print("telegram response : ",res)
+# if isinstance(res['result'],str):
+#     unsorted = json.loads(res['result'])
+# elif isinstance(res['result'],dict):
+#     unsorted = res['result']
+
+# try:
+#     msg = {
+#         "ods": unsorted['data']['ods'],
+#         "hostbill": {
+#             "status": unsorted['data']['hostbill']['status'],
+#             "length": len(unsorted['data']['hostbill']['result']),
+#             "fail_count": len(unsorted['data']['hostbill']['fails'])
+#         },
+#         "count": len(unsorted['data']['result'])
+#     }
+# except Exception as e:
+#     msg = {"error" : str(e)}
+# res['result']['data'] = msg
